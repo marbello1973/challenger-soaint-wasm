@@ -46,34 +46,7 @@ Solo 4 direcciones (como en tu BFS):
 - → derecha
 - NO diagonales
 
-```
-#[wasm_bindgen(constructor)]
-pub fn new(grid: Vec<u8>, size: usize) -> Self {
-    let path = bfs(grid, size);
-        Self { path }
-    }
-
-    Indica si existe un camino válido.
-    
-    # Retorna
-    - `true` si BFS encontró una ruta
-    - `false` en caso contrario
-pub fn has_path(&self) -> bool {
-        !self.path.is_empty()
-}
-
-Devuelve la ruta como un vector plano `[x1, y1, x2, y2, ...]`
-
-pub fn path(&self) -> Vec<usize> {
-    self.path
-        .iter()
-        .flat_map(|(x, y)| vec![*x, *y])
-        .collect()
-}
-```
-
-Ejecuta BFS sobre el grid.
-Retorna la ruta desde `(0,0)` hasta `(n-1,n-1)`
+Ejecuta BFS sobre el grid. retorna la ruta desde `(0,0)` hasta `(n-1,n-1)`
 o un vector vacío si no existe camino.
 
 
