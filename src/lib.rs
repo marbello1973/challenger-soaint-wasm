@@ -1,4 +1,4 @@
-//! # PathFinder WASM
+//! # Algoritmos de búsqueda BFS WASM
 //!
 //! Este módulo expone un buscador de caminos basado en **BFS (Breadth-First Search)**
 //! para ser utilizado desde JavaScript vía **wasm-bindgen**.
