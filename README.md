@@ -38,7 +38,15 @@ grid = [
 ]
 size = 3
 ```
+# Movimientos 
+Solo 4 direcciones (como en tu BFS):
+- ↑ arriba
+- ↓ abajo
+- ← izquierda
+- → derecha
+- NO diagonales
 
+```
 #[wasm_bindgen(constructor)]
 pub fn new(grid: Vec<u8>, size: usize) -> Self {
     let path = bfs(grid, size);
@@ -62,8 +70,7 @@ pub fn path(&self) -> Vec<usize> {
         .flat_map(|(x, y)| vec![*x, *y])
         .collect()
 }
-
--
+```
 
 Ejecuta BFS sobre el grid.
 Retorna la ruta desde `(0,0)` hasta `(n-1,n-1)`
