@@ -40,5 +40,5 @@ jobs:
 
       - name: 📂 Verify pkg output
         run: |
-          test -f pkg/*.wasm
-          test -f pkg/*.js
+          ls pkg/*.wasm >/dev/null
+          ls pkg/*.js   >/dev/null
