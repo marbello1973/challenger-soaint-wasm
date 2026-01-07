@@ -37,9 +37,9 @@ jobs:
         run: |
           mkdir site
           cp -r pkg site/
-          cp index.html site/
-          cp style.css site/
-          cp main.js site/
+          if [ -f index.html ]; then cp index.html site/; fi
+          if [ -f main.js ]; then cp main.js site/; fi
+          if [ -f style.css ]; then cp style.css site/; fi
 
       - name: 📤 Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
