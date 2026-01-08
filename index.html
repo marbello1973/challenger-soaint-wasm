@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Algoritmos de búsqueda BFS </title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algoritmos de búsqueda BFS - Debugger</title>
 
 <style>
 :root {
@@ -10,100 +11,325 @@
   --panel: #020617;
   --text: #e5e7eb;
   --accent: #22c55e;
+  --accent-light: #4ade80;
   --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --visited: #7dd3fc;
+  --queue: #fbbf24;
+  --obstacle: #1e293b;
+  --grid-bg: #f8fafc;
 }
 
-* { box-sizing: border-box; }
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+}
 
 body {
   margin: 0;
-  height: 100vh;
+  min-height: 100vh;
   background: radial-gradient(circle at top, #1e293b, var(--bg));
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: system-ui, sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   color: var(--text);
+  padding: 20px;
 }
 
 .app {
   background: var(--panel);
-  padding: 24px 28px;
-  border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,.6);
+  padding: 28px 32px;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 24px;
+  grid-template-columns: 380px 1fr;
+  gap: 32px;
+  max-width: 1200px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* CONTROLES */
-.controls h1 {
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 16px;
+}
+
+.header h1 {
   margin: 0 0 6px;
-  font-size: 1.4rem;
+  font-size: 1.8rem;
+  background: linear-gradient(135deg, var(--accent), var(--info));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.controls p {
-  margin: 0 0 10px;
-  opacity: .8;
-  font-size: .9rem;
+.header p {
+  margin: 0;
+  opacity: .7;
+  font-size: .95rem;
+  line-height: 1.5;
 }
 
-textarea {
+.code-section textarea {
   width: 100%;
-  height: 120px;
+  height: 150px;
   resize: none;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
   outline: none;
-  background: #020617;
+  background: rgba(0, 0, 0, 0.3);
   color: var(--text);
-  font-family: monospace;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  transition: border-color 0.3s;
+}
+
+.code-section textarea:focus {
+  border-color: var(--accent);
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 button {
-  margin-top: 10px;
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 14px 20px;
+  border-radius: 12px;
   border: none;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+#run {
   background: var(--accent);
   color: #022c22;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-.slider {
-  margin-top: 12px;
+#run:hover {
+  background: var(--accent-light);
+  transform: translateY(-2px);
 }
 
-.slider label {
+#debug {
+  background: var(--info);
+  color: white;
+}
+
+#debug:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+#reset {
+  grid-column: 1 / -1;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+#reset:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.controls-footer {
   display: flex;
-  justify-content: space-between;
-  font-size: .85rem;
-  opacity: .9;
+  flex-direction: column;
+  gap: 16px;
 }
 
-input[type="range"] {
-  width: 100%;
+.stats {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.result {
-  margin-top: 8px;
-  font-weight: 600;
-}
-
-/* CANVAS */
-.canvas-wrapper {
+.stat-item {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.legend {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.legend h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.legend-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+/* VISUALIZACIÓN */
+.visualization {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.canvas-wrapper {
+  background: var(--grid-bg);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  min-height: 400px;
 }
 
 canvas {
-  background: #fff;
-  border-radius: 10px;
-  border: 2px solid #020617;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.debug-info {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  min-height: 120px;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.debug-header h3 {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+#stepCounter {
+  background: var(--info);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#debugConsole {
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: rgba(255, 255, 255, 0.9);
+  min-height: 60px;
+}
+
+.step-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.step-controls button {
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+#prevStep {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#nextStep {
+  background: var(--info);
+}
+
+.result {
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 10px;
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.result.success {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.result.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cell-label {
+  font-weight: bold;
+  font-size: 12px;
+  fill: #333;
+  user-select: none;
 }
 </style>
 </head>
@@ -111,34 +337,107 @@ canvas {
 <body>
 
 <div class="app">
-
   <div class="controls">
-    <h1>🧭 Algoritmos de búsqueda BFS</h1>
-    <p>0 = obstáculo · 1 = camino</p>
+    <div class="header">
+      <h1>🔍 Algoritmo BFS - Debugger Visual</h1>
+      <p>0 = obstáculo · 1 = camino libre · Visualización paso a paso del algoritmo BFS</p>
+    </div>
 
-<textarea id="matrix">
-1 1 0
-0 1 0
-0 1 1
-</textarea>
+    <div class="code-section">
+      <textarea id="matrix">1 1 1 0 1
+0 1 0 1 1
+1 1 0 1 0
+0 1 1 1 0
+1 0 1 1 1</textarea>
+    </div>
 
-<button id="run">Evaluar camino</button>
+    <div class="buttons">
+      <button id="run">
+        <span>▶️</span> Ejecutar Todo
+      </button>
+      <button id="debug">
+        <span>🔍</span> Modo Debug
+      </button>
+      <button id="reset">
+        <span>🔄</span> Reiniciar
+      </button>
+    </div>
 
-<div class="slider">
-  <label>
-    <span>Velocidad</span>
-    <span id="speedValue">400 ms</span>
-  </label>
-  <input id="speed" type="range" min="50" max="800" step="50" value="400">
-</div>
+    <div class="controls-footer">
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-label">Tamaño Grid</div>
+          <div class="stat-value" id="gridSize">5×5</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Celdas Visitadas</div>
+          <div class="stat-value" id="visitedCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Pasos</div>
+          <div class="stat-value" id="stepsCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Estado</div>
+          <div class="stat-value" id="status">Inactivo</div>
+        </div>
+      </div>
 
-<div class="result" id="result"></div>
+      <div class="legend">
+        <h3>Leyenda de Colores</h3>
+        <div class="legend-items">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #e5e7eb;"></div>
+            <span>Camino libre</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--obstacle);"></div>
+            <span>Obstáculo</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--visited);"></div>
+            <span>Visitado</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--queue);"></div>
+            <span>En cola</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--accent);"></div>
+            <span>Ruta final</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--info);"></div>
+            <span>Actual</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="canvas-wrapper">
-    <canvas id="canvas" width="300" height="300"></canvas>
-  </div>
+  <div class="visualization">
+    <div class="canvas-wrapper">
+      <canvas id="canvas" width="450" height="450"></canvas>
+    </div>
 
+    <div class="debug-info">
+      <div class="debug-header">
+        <h3>📋 Consola de Debug</h3>
+        <div id="stepCounter">Paso: 0</div>
+      </div>
+      <div id="debugConsole">Presiona "Modo Debug" para iniciar la ejecución paso a paso...</div>
+      <div class="step-controls" style="display: none;">
+        <button id="prevStep">
+          <span>◀️</span> Anterior
+        </button>
+        <button id="nextStep">
+          <span>▶️</span> Siguiente
+        </button>
+      </div>
+    </div>
+
+    <div id="result" class="result"></div>
+  </div>
 </div>
 
 <script type="module">
@@ -147,69 +446,551 @@ await init();
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-const speedInput = document.getElementById("speed");
-const speedValue = document.getElementById("speedValue");
+const matrixInput = document.getElementById("matrix");
+const runBtn = document.getElementById("run");
+const debugBtn = document.getElementById("debug");
+const resetBtn = document.getElementById("reset");
+const prevStepBtn = document.getElementById("prevStep");
+const nextStepBtn = document.getElementById("nextStep");
+const debugConsole = document.getElementById("debugConsole");
+const stepCounter = document.getElementById("stepCounter");
+const resultDiv = document.getElementById("result");
+const visitedCount = document.getElementById("visitedCount");
+const stepsCount = document.getElementById("stepsCount");
+const statusEl = document.getElementById("status");
+const gridSize = document.getElementById("gridSize");
 
-speedValue.textContent = speedInput.value + " ms";
-speedInput.oninput = () => {
-  speedValue.textContent = speedInput.value + " ms";
+// Estado de la aplicación
+let currentGrid = [];
+let gridSizeValue = 0;
+let isDebugMode = false;
+let debugSteps = [];
+let currentStep = 0;
+let visitedCells = new Set();
+let queueCells = new Set();
+let pathFinder = null;
+
+// Colores
+const COLORS = {
+  EMPTY: '#e5e7eb',
+  OBSTACLE: '#1e293b',
+  VISITED: '#7dd3fc',
+  QUEUE: '#fbbf24',
+  PATH: '#22c55e',
+  CURRENT: '#3b82f6',
+  TEXT: '#333333',
+  GRID_LINE: '#cbd5e1'
 };
 
-document.getElementById("run").onclick = () => {
-  const text = document.getElementById("matrix").value.trim();
-  const rows = text.split("\n").map(r => r.trim().split(/\s+/).map(Number));
-  const size = rows.length;
-  const grid = rows.flat();
+// Inicializar con la grid por defecto
+updateGrid();
 
-  const finder = new PathFinder(grid, size);
+matrixInput.addEventListener('input', updateGrid);
 
-  drawGrid(rows);
-
-  const result = document.getElementById("result");
-  if (finder.has_path()) {
-    result.textContent = "✅ Existe un camino";
-    result.style.color = "var(--accent)";
-    animatePath(finder.path(), size);
-  } else {
-    result.textContent = "❌ No existe camino";
-    result.style.color = "var(--danger)";
+function updateGrid() {
+  try {
+    const text = matrixInput.value.trim();
+    const rows = text.split("\n").map(r => r.trim().split(/\s+/).map(Number));
+    gridSizeValue = rows.length;
+    currentGrid = rows;
+    
+    gridSize.textContent = `${gridSizeValue}×${gridSizeValue}`;
+    drawGrid();
+    resetDebugState();
+  } catch (e) {
+    console.error("Error parsing grid:", e);
   }
-};
+}
 
-function drawGrid(rows) {
-  const size = rows.length;
-  const cell = canvas.width / size;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
+function drawGrid(highlightCell = null) {
+  const size = currentGrid.length;
+  const cellSize = canvas.width / size;
+  
+  // Limpiar canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Dibujar celdas
   for (let x = 0; x < size; x++) {
     for (let y = 0; y < size; y++) {
-      ctx.fillStyle = rows[x][y] === 1 ? "#e5e7eb" : "#020617";
-      ctx.fillRect(y * cell, x * cell, cell, cell);
-      ctx.strokeRect(y * cell, x * cell, cell, cell);
+      const value = currentGrid[x][y];
+      let color = value === 1 ? COLORS.EMPTY : COLORS.OBSTACLE;
+      
+      // Aplicar colores de debug
+      const cellId = x * size + y;
+      if (visitedCells.has(cellId)) {
+        color = COLORS.VISITED;
+      } else if (queueCells.has(cellId)) {
+        color = COLORS.QUEUE;
+      }
+      
+      // Célula actual (resaltada)
+      if (highlightCell && highlightCell.x === x && highlightCell.y === y) {
+        color = COLORS.CURRENT;
+      }
+      
+      ctx.fillStyle = color;
+      ctx.fillRect(y * cellSize, x * cellSize, cellSize, cellSize);
+      
+      // Borde de celda
+      ctx.strokeStyle = COLORS.GRID_LINE;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(y * cellSize, x * cellSize, cellSize, cellSize);
+      
+      // Etiqueta de coordenadas (opcional para grids pequeños)
+      if (size <= 10) {
+        ctx.fillStyle = COLORS.TEXT;
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(
+          `${x},${y}`,
+          y * cellSize + cellSize / 2,
+          x * cellSize + cellSize / 2
+        );
+      }
     }
   }
 }
 
-function animatePath(flat, size) {
-  const cell = canvas.width / size;
-  let i = 0;
-
-  function step() {
-    if (i >= flat.length) return;
-
-    const x = flat[i];
-    const y = flat[i + 1];
-
-    ctx.fillStyle = "#22c55e";
-    ctx.fillRect(y * cell, x * cell, cell, cell);
-
-    i += 2;
-    setTimeout(step, Number(speedInput.value));
-  }
-
-  step();
+function resetDebugState() {
+  isDebugMode = false;
+  debugSteps = [];
+  currentStep = 0;
+  visitedCells.clear();
+  queueCells.clear();
+  stepCounter.textContent = "Paso: 0";
+  debugConsole.textContent = "Presiona 'Modo Debug' para iniciar la ejecución paso a paso...";
+  document.querySelector('.step-controls').style.display = 'none';
+  resultDiv.style.display = 'none';
+  statusEl.textContent = "Inactivo";
+  visitedCount.textContent = "0";
+  stepsCount.textContent = "0";
+  drawGrid();
 }
-</script>
 
+runBtn.addEventListener('click', () => {
+  resetDebugState();
+  
+  const gridFlat = currentGrid.flat();
+  pathFinder = new PathFinder(gridFlat, gridSizeValue);
+  
+  if (pathFinder.has_path()) {
+    showResult("✅ ¡Camino encontrado!", "success");
+    animateFinalPath(pathFinder.path());
+  } else {
+    showResult("❌ No existe un camino válido", "error");
+  }
+});
+
+debugBtn.addEventListener('click', () => {
+  resetDebugState();
+  isDebugMode = true;
+  debugConsole.textContent = "Inicializando BFS...\n";
+  document.querySelector('.step-controls').style.display = 'flex';
+  statusEl.textContent = "Debug activo";
+  
+  // Simular BFS paso a paso para debug
+  simulateBFS();
+});
+
+prevStepBtn.addEventListener('click', () => {
+  if (currentStep > 0) {
+    currentStep--;
+    applyDebugStep(currentStep);
+  }
+});
+
+nextStepBtn.addEventListener('click', () => {
+  if (currentStep < debugSteps.length - 1) {
+    currentStep++;
+    applyDebugStep(currentStep);
+  } else if (currentStep === debugSteps.length - 1) {
+    // Al final, mostrar resultado
+    const gridFlat = currentGrid.flat();
+    pathFinder = new PathFinder(gridFlat, gridSizeValue);
+    
+    if (pathFinder.has_path()) {
+      debugConsole.textContent += "\n🎯 ¡Destino alcanzado!";
+      showResult("✅ Camino encontrado en modo debug", "success");
+      animateFinalPath(pathFinder.path());
+    } else {
+      debugConsole.textContent += "\n❌ No se encontró camino";
+      showResult("❌ No existe camino", "error");
+    }
+    currentStep++;
+  }
+});
+
+function simulateBFS() {
+  const size = gridSizeValue;
+  const grid = currentGrid.flat();
+  const visited = new Array(size * size).fill(false);
+  const queue = [[0, 0]];
+  visited[0] = true;
+  visitedCells.add(0);
+  queueCells.add(0);
+  
+  let step = 0;
+  
+  if (grid[0] === 0 || grid[size * size - 1] === 0) {
+    debugSteps.push({
+      visited: new Set(visitedCells),
+      queue: new Set(queueCells),
+      current: null,
+      log: "Inicio o destino bloqueado"
+    });
+    return;
+  }
+  
+  debugSteps.push({
+    visited: new Set(visitedCells),
+    queue: new Set(queueCells),
+    current: [0, 0],
+    log: `Inicio en (0, 0)`
+  });
+  step++;
+  
+  const dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+  
+  while (queue.length > 0 && step < 50) { // Limitar pasos para no colgar
+    const [x, y] = queue.shift();
+    queueCells.delete(x * size + y);
+    
+    debugSteps.push({
+      visited: new Set(visitedCells),
+      queue: new Set(queueCells),
+      current: [x, y],
+      log: `Procesando (${x}, ${y})`
+    });
+    step++;
+    
+    if (x === size - 1 && y === size - 1) {
+      debugSteps.push({
+        visited: new Set(visitedCells),
+        queue: new Set(queueCells),
+        current: [x, y],
+        log: `¡Destino alcanzado en (${x}, ${y})!`
+      });
+      break;
+    }
+    
+    for (const [dx, dy] of dirs) {
+      const nx = x + dx;
+      const ny = y + dy;
+      
+      if (nx >= 0 && ny >= 0 && nx < size && ny < size) {
+        const idx = nx * size + ny;
+        
+        if (grid[idx] === 1 && !visited[idx]) {
+          visited[idx] = true;
+          visitedCells.add(idx);
+          queue.push([nx, ny]);
+          queueCells.add(idx);
+          
+          debugSteps.push({
+            visited: new Set(visitedCells),
+            queue: new Set(queueCells),
+            current: [x, y],
+            log: `  → Añadido (${nx}, ${ny}) a la cola`
+          });
+          step++;
+        }
+      }
+    }
+  }
+  
+  if (step >= 50) {
+    debugSteps.push({
+      visited: new Set(visitedCells),
+      queue: new Set(queueCells),
+      current: null,
+      log: "Límite de pasos alcanzado"
+    });
+  }
+  
+  applyDebugStep(0);
+}
+
+function applyDebugStep(stepIndex) {
+  if (stepIndex >= debugSteps.length) return;
+  
+  const step = debugSteps[stepIndex];
+  visitedCells = step.visited;
+  queueCells = step.queue;
+  
+  stepCounter.textContent = `Paso: ${stepIndex + 1}/${debugSteps.length}`;
+  debugConsole.textContent = step.log;
+  visitedCount.textContent = visitedCells.size;
+  stepsCount.textContent = stepIndex + 1;
+  
+  drawGrid(step.current ? {x: step.current[0], y: step.current[1]} : null);
+}
+
+function animateFinalPath(path) {
+  const size = gridSizeValue;
+  const cellSize = canvas.width / size;
+  const pathCoords = [];
+  
+  // Convertir array plano a coordenadas
+  for (let i = 0; i < path.length; i += 2) {
+    pathCoords.push([path[i], path[i + 1]]);
+  }
+  
+  let i = 0;
+  function drawNext() {
+    if (i >= pathCoords.length) return;
+    
+    const [x, y] = pathCoords[i];
+    ctx.fillStyle = COLORS.PATH;
+    ctx.fillRect(y * cellSize, x * cellSize, cellSize, cellSize);
+    
+    // Borde de la celda del camino
+    ctx.strokeStyle = COLORS.GRID_LINE;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(y * cellSize, x * cellSize, cellSize, cellSize);
+    
+    i++;
+    setTimeout(drawNext, 200);
+  }
+  
+  drawNext();
+}
+
+function showResult(message, type) {
+  resultDiv.textContent = message;
+  resultDiv.className = `result ${type}`;
+  resultDiv.style.display = 'block';
+}
+
+resetBtn.addEventListener('click', () => {
+  matrixInput.value = `1 1 1 0 1
+0 1 0 1 1
+1 1 0 1 0
+0 1 1 1 0
+1 0 1 1 1`;
+  updateGrid();
+});
+</script>
 </body>
 </html>
+
+
+<!---->
+<!---->
+<!---->
+<!---->
+<!-- <!DOCTYPE html> -->
+<!-- <html lang="es"> -->
+<!-- <head> -->
+<!-- <meta charset="UTF-8"> -->
+<!-- <title>Algoritmos de búsqueda BFS </title> -->
+<!---->
+<!-- <style> -->
+<!-- :root { -->
+<!--   --bg: #0f172a; -->
+<!--   --panel: #020617; -->
+<!--   --text: #e5e7eb; -->
+<!--   --accent: #22c55e; -->
+<!--   --danger: #ef4444; -->
+<!-- } -->
+<!---->
+<!-- * { box-sizing: border-box; } -->
+<!---->
+<!-- body { -->
+<!--   margin: 0; -->
+<!--   height: 100vh; -->
+<!--   background: radial-gradient(circle at top, #1e293b, var(--bg)); -->
+<!--   display: flex; -->
+<!--   justify-content: center; -->
+<!--   align-items: center; -->
+<!--   font-family: system-ui, sans-serif; -->
+<!--   color: var(--text); -->
+<!-- } -->
+<!---->
+<!-- .app { -->
+<!--   background: var(--panel); -->
+<!--   padding: 24px 28px; -->
+<!--   border-radius: 14px; -->
+<!--   box-shadow: 0 20px 40px rgba(0,0,0,.6); -->
+<!--   display: grid; -->
+<!--   grid-template-columns: 1fr 320px; -->
+<!--   gap: 24px; -->
+<!-- } -->
+<!---->
+<!-- /* CONTROLES */ -->
+<!-- .controls h1 { -->
+<!--   margin: 0 0 6px; -->
+<!--   font-size: 1.4rem; -->
+<!-- } -->
+<!---->
+<!-- .controls p { -->
+<!--   margin: 0 0 10px; -->
+<!--   opacity: .8; -->
+<!--   font-size: .9rem; -->
+<!-- } -->
+<!---->
+<!-- textarea { -->
+<!--   width: 100%; -->
+<!--   height: 120px; -->
+<!--   resize: none; -->
+<!--   padding: 10px; -->
+<!--   border-radius: 8px; -->
+<!--   border: none; -->
+<!--   outline: none; -->
+<!--   background: #020617; -->
+<!--   color: var(--text); -->
+<!--   font-family: monospace; -->
+<!-- } -->
+<!---->
+<!-- button { -->
+<!--   margin-top: 10px; -->
+<!--   width: 100%; -->
+<!--   padding: 10px; -->
+<!--   border-radius: 8px; -->
+<!--   border: none; -->
+<!--   background: var(--accent); -->
+<!--   color: #022c22; -->
+<!--   font-weight: 600; -->
+<!--   cursor: pointer; -->
+<!-- } -->
+<!---->
+<!-- .slider { -->
+<!--   margin-top: 12px; -->
+<!-- } -->
+<!---->
+<!-- .slider label { -->
+<!--   display: flex; -->
+<!--   justify-content: space-between; -->
+<!--   font-size: .85rem; -->
+<!--   opacity: .9; -->
+<!-- } -->
+<!---->
+<!-- input[type="range"] { -->
+<!--   width: 100%; -->
+<!-- } -->
+<!---->
+<!-- .result { -->
+<!--   margin-top: 8px; -->
+<!--   font-weight: 600; -->
+<!-- } -->
+<!---->
+<!-- /* CANVAS */ -->
+<!-- .canvas-wrapper { -->
+<!--   display: flex; -->
+<!--   justify-content: center; -->
+<!--   align-items: center; -->
+<!-- } -->
+<!---->
+<!-- canvas { -->
+<!--   background: #fff; -->
+<!--   border-radius: 10px; -->
+<!--   border: 2px solid #020617; -->
+<!-- } -->
+<!-- </style> -->
+<!-- </head> -->
+<!---->
+<!-- <body> -->
+<!---->
+<!-- <div class="app"> -->
+<!---->
+<!--   <div class="controls"> -->
+<!--     <h1>🧭 Algoritmos de búsqueda BFS</h1> -->
+<!--     <p>0 = obstáculo · 1 = camino</p> -->
+<!---->
+<!-- <textarea id="matrix"> -->
+<!-- 1 1 0 -->
+<!-- 0 1 0 -->
+<!-- 0 1 1 -->
+<!-- </textarea> -->
+<!---->
+<!-- <button id="run">Evaluar camino</button> -->
+<!---->
+<!-- <div class="slider"> -->
+<!--   <label> -->
+<!--     <span>Velocidad</span> -->
+<!--     <span id="speedValue">400 ms</span> -->
+<!--   </label> -->
+<!--   <input id="speed" type="range" min="50" max="800" step="50" value="400"> -->
+<!-- </div> -->
+<!---->
+<!-- <div class="result" id="result"></div> -->
+<!--   </div> -->
+<!---->
+<!--   <div class="canvas-wrapper"> -->
+<!--     <canvas id="canvas" width="300" height="300"></canvas> -->
+<!--   </div> -->
+<!---->
+<!-- </div> -->
+<!---->
+<!-- <script type="module"> -->
+<!-- import init, { PathFinder } from "./pkg/challenger_soaint_wasm.js"; -->
+<!-- await init(); -->
+<!---->
+<!-- const canvas = document.getElementById("canvas"); -->
+<!-- const ctx = canvas.getContext("2d"); -->
+<!-- const speedInput = document.getElementById("speed"); -->
+<!-- const speedValue = document.getElementById("speedValue"); -->
+<!---->
+<!-- speedValue.textContent = speedInput.value + " ms"; -->
+<!-- speedInput.oninput = () => { -->
+<!--   speedValue.textContent = speedInput.value + " ms"; -->
+<!-- }; -->
+<!---->
+<!-- document.getElementById("run").onclick = () => { -->
+<!--   const text = document.getElementById("matrix").value.trim(); -->
+<!--   const rows = text.split("\n").map(r => r.trim().split(/\s+/).map(Number)); -->
+<!--   const size = rows.length; -->
+<!--   const grid = rows.flat(); -->
+<!---->
+<!--   const finder = new PathFinder(grid, size); -->
+<!---->
+<!--   drawGrid(rows); -->
+<!---->
+<!--   const result = document.getElementById("result"); -->
+<!--   if (finder.has_path()) { -->
+<!--     result.textContent = "✅ Existe un camino"; -->
+<!--     result.style.color = "var(--accent)"; -->
+<!--     animatePath(finder.path(), size); -->
+<!--   } else { -->
+<!--     result.textContent = "❌ No existe camino"; -->
+<!--     result.style.color = "var(--danger)"; -->
+<!--   } -->
+<!-- }; -->
+<!---->
+<!-- function drawGrid(rows) { -->
+<!--   const size = rows.length; -->
+<!--   const cell = canvas.width / size; -->
+<!--   ctx.clearRect(0,0,canvas.width,canvas.height); -->
+<!---->
+<!--   for (let x = 0; x < size; x++) { -->
+<!--     for (let y = 0; y < size; y++) { -->
+<!--       ctx.fillStyle = rows[x][y] === 1 ? "#e5e7eb" : "#020617"; -->
+<!--       ctx.fillRect(y * cell, x * cell, cell, cell); -->
+<!--       ctx.strokeRect(y * cell, x * cell, cell, cell); -->
+<!--     } -->
+<!--   } -->
+<!-- } -->
+<!---->
+<!-- function animatePath(flat, size) { -->
+<!--   const cell = canvas.width / size; -->
+<!--   let i = 0; -->
+<!---->
+<!--   function step() { -->
+<!--     if (i >= flat.length) return; -->
+<!---->
+<!--     const x = flat[i]; -->
+<!--     const y = flat[i + 1]; -->
+<!---->
+<!--     ctx.fillStyle = "#22c55e"; -->
+<!--     ctx.fillRect(y * cell, x * cell, cell, cell); -->
+<!---->
+<!--     i += 2; -->
+<!--     setTimeout(step, Number(speedInput.value)); -->
+<!--   } -->
+<!---->
+<!--   step(); -->
+<!-- } -->
+<!-- </script> -->
+<!---->
+<!-- </body> -->
+<!-- </html> -->
